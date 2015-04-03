@@ -1,0 +1,6 @@
+state/
+*.pyc
+*.pkl
+*.npy
+*.npz
+*.png
