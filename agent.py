@@ -86,7 +86,7 @@ class DeepQLearningAgent(Agent):
       int_action = self.choose_action(self.train_table, cur_img, np.clip(reward, -1, 1), testing_ep=None)
       if self.train_table.num_entries > max(self.learn_start, self.batch_size):
         states, actions, rewards, next_states, terminals = self.train_table.get_minibatch(self.batch_size)
-        loss, qvals = self.network.process_minibatch(states, actions, rewards, next_states, terminals)
+        loss, qvals = self.network.train(states, actions, rewards, next_states, terminals)
         self.losses.append(loss)
         self.qvals.append(np.mean(qvals))
         self.batch_counter += 1
