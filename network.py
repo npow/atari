@@ -7,7 +7,7 @@ import theano.tensor as T
 from lasagne.layers import cuda_convnet
 from theano.printing import Print as pp
 
-def RMSprop_nesterov(cost, params, lr=0.001, rho=0.9, momentum=0.7, epsilon=1e-6):
+def rmsprop_nesterov(cost, params, lr=0.001, rho=0.9, momentum=0.7, epsilon=1e-6):
     grads = T.grad(cost=cost, wrt=params)
     updates = []
     for p, g in zip(params, grads):
@@ -33,11 +33,12 @@ class DeepQLearner:
         self.rho = 0.99
         self.lr = 0.00020 # learning rate
         self.momentum = 0.0
-        # TODO: use squared momentum in RMSprop
+        self.freeze_targets = False
 
         self.l_out = self.build_small_network(input_width, input_height, output_dim, num_frames, batch_size)
-        self.next_l_out = self.build_small_network(input_width, input_height, output_dim, num_frames, batch_size)
-        self.reset_q_hat()
+        if self.freeze_targets:
+            self.next_l_out = self.build_small_network(input_width, input_height, output_dim, num_frames, batch_size)
+            self.reset_q_hat()
 
         states = T.tensor4('states')
         next_states = T.tensor4('next_states')
@@ -52,9 +53,11 @@ class DeepQLearner:
 #        self.terminals_shared = theano.shared(np.zeros((batch_size, 1), dtype='int32'), broadcastable=(False,True))
 
         q_vals = self.l_out.get_output(states / 255.0)
-        # TODO: enable this
-        next_q_vals = self.l_out.get_output(next_states / 255.0)
-        next_q_vals = theano.gradient.disconnected_grad(next_q_vals)
+        if self.freeze_targets:
+            next_q_vals = self.next_l_out.get_output(next_states / 255.0)
+        else:
+            next_q_vals = self.l_out.get_output(next_states / 255.0)
+            next_q_vals = theano.gradient.disconnected_grad(next_q_vals)
 
         target = rewards + self.gamma * T.max(next_q_vals, axis=1, keepdims=True)
         diff = target - q_vals[T.arange(batch_size), actions.reshape((-1,))].reshape((-1,1))
@@ -68,10 +71,12 @@ class DeepQLearner:
             actions: self.actions_shared,
 #            terminals: self.terminals_shared
         }
-#        updates = RMSprop_nesterov(loss, params, self.lr, self.gamma, self.momentum, 0.01)
-        updates = lasagne.updates.rmsprop(loss, params, self.lr, self.rho, 1e-6)
-        self.train = theano.function([], [loss, q_vals], updates=updates, givens=givens)
-        self.get_q_vals = theano.function([], q_vals, givens={ states: self.states_shared })
+        if self.momentum > 0:
+            updates = rmsprop_nesterov(loss, params, self.lr, self.rho, self.momentum, 1e-2)
+        else:
+            updates = lasagne.updates.rmsprop(loss, params, self.lr, self.rho, 1e-6)
+        self._train = theano.function([], [loss, q_vals], updates=updates, givens=givens)
+        self._q_vals = theano.function([], q_vals, givens={ states: self.states_shared })
 
     def build_network(self, input_width, input_height, output_dim, num_frames, batch_size):
         l_in = lasagne.layers.InputLayer(
@@ -129,6 +134,7 @@ class DeepQLearner:
                 W=lasagne.init.Uniform(0.01),
                 b=lasagne.init.Constant(0.1)
                 )
+
         return l_out
 
     def build_small_network(self, input_width, input_height, output_dim, num_frames, batch_size):
@@ -180,25 +186,31 @@ class DeepQLearner:
 
         return l_out
 
-    def process_minibatch(self, states, actions, rewards, next_states, terminals):
+    def train(self, states, actions, rewards, next_states, terminals):
         self.states_shared.set_value(states)
         self.next_states_shared.set_value(next_states)
         self.actions_shared.set_value(actions)
         self.rewards_shared.set_value(rewards)
 #        self.terminals_shared.set_value(np.logical_not(terminals))
-        loss, q_vals = self.train()
+        loss, q_vals = self._train()
         return np.sqrt(loss), q_vals
 
-    def choose_action(self, state):
+    def q_vals(self, state):
         states = np.zeros((self.batch_size, self.num_frames, self.input_width, self.input_height), dtype=theano.config.floatX)
         states[0,...] = state.reshape((1, self.num_frames, self.input_width, self.input_height))
         self.states_shared.set_value(states)
-        q_vals = self.get_q_vals()
-        return np.argmax(q_vals[0])
+        return self._q_vals()[0]
+
+    def choose_action(self, state, epsilon=None):
+        if epsilon is not None and np.random.rand() < epsilon:
+            return np.random.randint(0, self.output_dim)
+        q_vals = self.q_vals(state)
+        return np.argmax(q_vals)
 
     def reset_q_hat(self):
-#        lasagne.layers.helper.set_all_param_values(self.next_l_out, copy.copy(lasagne.layers.helper.get_all_param_values(self.l_out)))
         print "reset_q_hat()"
+        if self.freeze_targets:
+            lasagne.layers.helper.set_all_param_values(self.next_l_out, copy.copy(lasagne.layers.helper.get_all_param_values(self.l_out)))
 
 def main():
   net = DeepQLearner(84, 84, 16, 4, 32)
