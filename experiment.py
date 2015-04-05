@@ -17,14 +17,15 @@ def run_epoch(epoch, num_steps, prefix):
 
 def main():
     RLGlue.RL_init()
+    is_testing = len(sys.argv) > 2 and sys.argv[2] == 'test'
     for epoch in xrange(NUM_EPOCHS):
-        run_epoch(epoch, EPOCH_LENGTH, "training")
-        RLGlue.RL_agent_message("finish_epoch " + str(epoch))
-        
-        if len(sys.argv) > 2 and sys.argv[2] == 'test':
+        if is_testing:
             RLGlue.RL_agent_message("start_testing")
             run_epoch(epoch, TEST_LENGTH, "testing")
             RLGlue.RL_agent_message("finish_testing " + str(epoch))
+        else:
+            run_epoch(epoch, EPOCH_LENGTH, "training")
+            RLGlue.RL_agent_message("finish_epoch " + str(epoch))
 
 if __name__ == "__main__":
     main()
