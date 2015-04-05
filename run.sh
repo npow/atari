@@ -17,9 +17,9 @@ export RLGLUE_PORT=${ROMS[$ROM]}
 export FRAME_SKIP=4
 export DISPLAY_SCREEN=true
 
-if [[ $0 -eq "test" ]]; then
+if [[ $1 -eq "test" ]]; then
 export TEST_ARGS="test"
-export NETWORK_FILE="$1"
+export NETWORK_FILE="$2"
 export RLGLUE_PORT=5000
 fi
 

@@ -1,5 +1,5 @@
 ### Dependencies
-* [http://continuum.io/downloads](Anaconda Python)
+* [Anaconda Python](https://code.google.com/p/rl-glue-ext/wiki/Python)
 
 * OpenCV
 ```
@@ -26,9 +26,9 @@ python setup.py install
 sudo apt-get install libsdl1.2-dev libsdl-image1.2-dev libsdl-gfx1.2-dev libopencv-dev python-opencv
 ```
 
-* [https://code.google.com/p/rl-glue-ext/wiki/RLGlueCore](RLGlue)
+* [RLGlue](https://code.google.com/p/rl-glue-ext/wiki/RLGlueCore)
 
-* [https://code.google.com/p/rl-glue-ext/wiki/Python](RLGlue Python Codec)
+* [RLGLue Python Codec](https://code.google.com/p/rl-glue-ext/wiki/Python)
 
 * Arcade Learning Environment
 ```

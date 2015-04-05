@@ -198,5 +198,5 @@ class DeepQLearningAgent(Agent):
 
 if __name__== '__main__':
   prefix = sys.argv[1] if len(sys.argv) > 1 else ""
-  network_file = int(sys.argv[2]) if len(sys.argv) > 2 else None
+  network_file = sys.argv[2] if len(sys.argv) > 2 else None
   AgentLoader.loadAgent(DeepQLearningAgent(prefix, network_file))
