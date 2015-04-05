@@ -17,7 +17,7 @@ def run_epoch(epoch, num_steps, prefix):
 
 def main():
     RLGlue.RL_init()
-    is_testing = len(sys.argv) > 2 and sys.argv[2] == 'test'
+    is_testing = len(sys.argv) > 1 and sys.argv[1] == 'test'
     for epoch in xrange(NUM_EPOCHS):
         if is_testing:
             RLGlue.RL_agent_message("start_testing")
