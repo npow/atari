@@ -8,6 +8,7 @@ ROMS[enduro]=5002
 ROMS[pong]=5003
 ROMS[qbert]=5004
 ROMS[seaquest]=5005
+ROMS[montezuma_revenge]=5006
 
 export THEANO_FLAGS=device=gpu0
 export ROM=breakout
