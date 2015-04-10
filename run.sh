@@ -10,14 +10,14 @@ ROMS[qbert]=5004
 ROMS[seaquest]=5005
 ROMS[montezuma_revenge]=5006
 
-export THEANO_FLAGS=device=gpu0
-export ROM=breakout
+export THEANO_FLAGS=device=gpu1
+export ROM=seaquest
 export ROM_DIR=roms
 export RLGLUE_PORT=${ROMS[$ROM]}
 export FRAME_SKIP=4
 export DISPLAY_SCREEN=true
 
-if [[ $1 -eq "test" ]]; then
+if [[ $1 == "test" ]]; then
 export TEST_ARGS="test"
 export NETWORK_FILE="$2"
 export RLGLUE_PORT=5000
