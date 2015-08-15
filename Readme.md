@@ -1,3 +1,6 @@
+## This repository is deprecated. The network code has been merged into [`spragunr/deep_q_rl`](https://github.com/spragunr/deep_q_rl)
+
+
 ### Dependencies
 * [Anaconda Python](https://code.google.com/p/rl-glue-ext/wiki/Python)
 
